@@ -1,0 +1,20 @@
+# This file is used by the build system to adjust CSS and JS output to support the specified browsers below.
+# For additional information regarding the format and rules of the browserslist, see:
+# https://github.com/browserslist/browserslist#queries
+
+# For the development build, use the default browser support.
+
+# You can see what browsers are supported by our build tools by running:
+# `npx browserslist`
+
+last 1 Chrome version
+last 1 Firefox version
+last 2 Edge major versions
+last 2 Safari major versions
+last 2 iOS Safari major versions
+Firefox ESR
+
+# Specific version pinning for Raspberry Pi compatibility
+# (older browsers on headless Pi deployments)
+# Uncomment if needed:
+# last 2 versions
