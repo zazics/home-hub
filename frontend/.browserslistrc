@@ -11,10 +11,4 @@ last 1 Chrome version
 last 1 Firefox version
 last 2 Edge major versions
 last 2 Safari major versions
-last 2 iOS Safari major versions
 Firefox ESR
-
-# Specific version pinning for Raspberry Pi compatibility
-# (older browsers on headless Pi deployments)
-# Uncomment if needed:
-# last 2 versions
