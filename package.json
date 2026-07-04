@@ -1,0 +1,19 @@
+{
+  "name": "home-hub",
+  "version": "0.0.1",
+  "description": "Home Hub - Smart home dashboard for Raspberry Pi",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start:dev": "npm run start:dev -w backend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "test": "npm test -w backend && npm test -w frontend",
+    "lint": "npm run lint -w backend && npm run lint -w frontend"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
