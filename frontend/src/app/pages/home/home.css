@@ -1,0 +1,28 @@
+.container {
+  text-align: center;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.status {
+  margin-top: 2rem;
+  font-weight: bold;
+}
+
+.status-success {
+  color: #2e7d32;
+}
+
+.status-error {
+  color: #c62828;
+}

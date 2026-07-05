@@ -1,0 +1,21 @@
+<div class="container">
+  <h1>Home Hub</h1>
+  <p>Smart home dashboard for Raspberry Pi</p>
+
+  @let currentState = state();
+  @switch (currentState.kind) {
+    @case ('loading') {
+      <p class="status status-loading">Checking backend status…</p>
+    }
+    @case ('success') {
+      <p class="status status-success">
+        Backend status: {{ currentState.health.status }}
+        <br />
+        <small>{{ currentState.health.timestamp }}</small>
+      </p>
+    }
+    @case ('error') {
+      <p class="status status-error">Unable to reach backend.</p>
+    }
+  }
+</div>
