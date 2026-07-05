@@ -1,0 +1,14 @@
+# Local development only: provides a reproducible MongoDB instance.
+# Does not prescribe how MongoDB runs on the Raspberry Pi in production
+# (native install or container — decided separately at deployment time).
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

@@ -7,4 +7,4 @@ async function bootstrap() {
   console.log('Backend listening on port 3000');
 }
 
-bootstrap();
+void bootstrap();
