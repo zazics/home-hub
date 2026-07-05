@@ -6,6 +6,6 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["backend/src/**/*", "frontend/src/**/*"],
-  "exclude": ["node_modules", "backend/dist", "backend/node_modules", "frontend/dist", "frontend/node_modules"]
+  "include": ["backend/src/**/*"],
+  "exclude": ["node_modules", "backend/dist", "backend/node_modules"]
 }
