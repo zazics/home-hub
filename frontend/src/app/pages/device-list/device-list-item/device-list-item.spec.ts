@@ -81,4 +81,99 @@ describe('DeviceListItem', () => {
 
     expect(element.querySelector('.device-capabilities')).toBeNull();
   });
+
+  it('always shows a power toggle for a light', () => {
+    const element = setup(baseDevice({ type: 'light', capabilities: { power: 'on' } }));
+
+    const toggle = element.querySelector<HTMLButtonElement>('.power-toggle');
+    expect(toggle).toBeTruthy();
+    expect(toggle?.textContent).toContain('Turn off');
+  });
+
+  it('shows "Turn on" when the light is off', () => {
+    const element = setup(baseDevice({ type: 'light', capabilities: { power: 'off' } }));
+
+    const toggle = element.querySelector<HTMLButtonElement>('.power-toggle');
+    expect(toggle?.textContent).toContain('Turn on');
+  });
+
+  it('does not show a power toggle for a non-light device', () => {
+    const element = setup(baseDevice({ type: 'plug', capabilities: { power: 'on' } }));
+
+    expect(element.querySelector('.power-toggle')).toBeNull();
+  });
+
+  it('emits togglePower with the opposite power state when clicked', () => {
+    const fixture = TestBed.createComponent(DeviceListItem);
+    fixture.componentRef.setInput('device', baseDevice({ type: 'light', capabilities: { power: 'on' } }));
+    fixture.detectChanges();
+
+    let emitted: 'on' | 'off' | undefined;
+    fixture.componentInstance.togglePower.subscribe((value) => (emitted = value));
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const toggle = nativeElement.querySelector<HTMLButtonElement>('.power-toggle');
+    toggle?.click();
+
+    expect(emitted).toBe('off');
+  });
+
+  it('renders the brightness slider only if capabilities.brightness is present', () => {
+    const element = setup(baseDevice({ type: 'light', capabilities: { power: 'on', brightness: 55 } }));
+
+    const slider = element.querySelector<HTMLInputElement>('.brightness-slider');
+    expect(slider).toBeTruthy();
+    expect(slider?.value).toBe('55');
+  });
+
+  it('does not render the brightness slider when brightness is absent', () => {
+    const element = setup(baseDevice({ type: 'light', capabilities: { power: 'on' } }));
+
+    expect(element.querySelector('.brightness-slider')).toBeNull();
+  });
+
+  it('emits setBrightness on slider change (commit), not on every input', () => {
+    const fixture = TestBed.createComponent(DeviceListItem);
+    fixture.componentRef.setInput(
+      'device',
+      baseDevice({ type: 'light', capabilities: { power: 'on', brightness: 50 } }),
+    );
+    fixture.detectChanges();
+
+    let emitted: number | undefined;
+    fixture.componentInstance.setBrightness.subscribe((value) => (emitted = value));
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const slider = nativeElement.querySelector<HTMLInputElement>('.brightness-slider');
+    slider!.value = '75';
+    slider!.dispatchEvent(new Event('change'));
+
+    expect(emitted).toBe(75);
+  });
+
+  it('disables the light controls while a command is pending', () => {
+    const fixture = TestBed.createComponent(DeviceListItem);
+    fixture.componentRef.setInput(
+      'device',
+      baseDevice({ type: 'light', capabilities: { power: 'on', brightness: 50 } }),
+    );
+    fixture.componentRef.setInput('disabled', true);
+    fixture.detectChanges();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    const toggle = nativeElement.querySelector<HTMLButtonElement>('.power-toggle');
+    const slider = nativeElement.querySelector<HTMLInputElement>('.brightness-slider');
+    expect(toggle?.disabled).toBe(true);
+    expect(slider?.disabled).toBe(true);
+  });
+
+  it('shows an inline error message when provided', () => {
+    const fixture = TestBed.createComponent(DeviceListItem);
+    fixture.componentRef.setInput('device', baseDevice({ type: 'light', capabilities: { power: 'on' } }));
+    fixture.componentRef.setInput('errorMessage', 'Failed to send command. Please try again.');
+    fixture.detectChanges();
+
+    const nativeElement = fixture.nativeElement as HTMLElement;
+    expect(nativeElement.querySelector('.device-error')?.textContent).toContain('Failed to send command');
+  });
 });

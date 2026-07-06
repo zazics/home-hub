@@ -3,7 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { ListDevicesParams, PaginatedDevicesResponse } from '../models/device';
+import { Device, ListDevicesParams, PaginatedDevicesResponse } from '../models/device';
+
+export interface LightCommand {
+  power?: 'on' | 'off';
+  brightness?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DeviceService {
@@ -23,5 +28,9 @@ export class DeviceService {
     return this.http.get<PaginatedDevicesResponse>(`${environment.apiBaseUrl}/devices`, {
       params: httpParams,
     });
+  }
+
+  sendLightCommand(id: string, command: LightCommand): Observable<Device> {
+    return this.http.patch<Device>(`${environment.apiBaseUrl}/devices/${id}/light-command`, command);
   }
 }

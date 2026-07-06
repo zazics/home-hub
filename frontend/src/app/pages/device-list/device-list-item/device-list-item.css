@@ -52,3 +52,33 @@
   font-size: 0.85rem;
   color: #555;
 }
+
+.light-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.power-toggle {
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+}
+
+.power-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.brightness-slider {
+  width: 100px;
+}
+
+.brightness-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.device-error {
+  font-size: 0.8rem;
+  color: #c62828;
+}

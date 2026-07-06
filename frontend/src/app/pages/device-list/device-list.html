@@ -18,7 +18,13 @@
     @case ('success') {
       <div class="device-list">
         @for (device of currentState.devices; track device.id) {
-          <app-device-list-item [device]="device" />
+          <app-device-list-item
+            [device]="device"
+            [disabled]="isPending(device.id)"
+            [errorMessage]="errorFor(device.id)"
+            (togglePower)="onTogglePower(device, $event)"
+            (setBrightness)="onSetBrightness(device, $event)"
+          />
         }
       </div>
       <div class="pagination">

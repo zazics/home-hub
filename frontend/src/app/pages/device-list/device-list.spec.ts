@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
-import { PaginatedDevicesResponse } from '../../core/models/device';
+import { Device, PaginatedDevicesResponse } from '../../core/models/device';
 import { DeviceService } from '../../core/services/device.service';
+import { DeviceListItem } from './device-list-item/device-list-item';
 import { DeviceList } from './device-list';
 
 describe('DeviceList', () => {
@@ -64,9 +65,9 @@ describe('DeviceList', () => {
   it('disables the previous button on the first page', () => {
     const fixture = setup({ listDevices: () => of(makeResponse()) });
     const element = fixture.nativeElement as HTMLElement;
-    const buttons = element.querySelectorAll('button');
+    const buttons = element.querySelectorAll('.pagination button');
 
-    expect(buttons[0].disabled).toBe(true);
+    expect((buttons[0] as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('disables the next button on the last page', () => {
@@ -75,9 +76,9 @@ describe('DeviceList', () => {
         of(makeResponse({ meta: { page: 1, limit: 20, total: 1, totalPages: 1 } })),
     });
     const element = fixture.nativeElement as HTMLElement;
-    const buttons = element.querySelectorAll('button');
+    const buttons = element.querySelectorAll('.pagination button');
 
-    expect(buttons[1].disabled).toBe(true);
+    expect((buttons[1] as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('requests the next page when next() is called and it is not the last page', () => {
@@ -129,5 +130,88 @@ describe('DeviceList', () => {
     expect(callCount).toBe(2);
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('app-device-list-item')).toBeTruthy();
+  });
+
+  function getItemDebugElement(fixture: ReturnType<typeof setup>) {
+    return fixture.debugElement.query((de) => de.componentInstance instanceof DeviceListItem);
+  }
+
+  it('disables the item control while the light command is in flight', () => {
+    const commandSubject = new Subject<Device>();
+    const fixture = setup({
+      listDevices: () => of(makeResponse()),
+      sendLightCommand: () => commandSubject.asObservable(),
+    });
+
+    const itemDebugElement = getItemDebugElement(fixture);
+    (itemDebugElement.componentInstance as DeviceListItem).togglePower.emit('off');
+    fixture.detectChanges();
+
+    expect((itemDebugElement.componentInstance as DeviceListItem).disabled()).toBe(true);
+  });
+
+  it('replaces the device data with the server response on success', () => {
+    const commandSubject = new Subject<Device>();
+    const fixture = setup({
+      listDevices: () => of(makeResponse()),
+      sendLightCommand: () => commandSubject.asObservable(),
+    });
+
+    const itemDebugElement = getItemDebugElement(fixture);
+    (itemDebugElement.componentInstance as DeviceListItem).togglePower.emit('off');
+    fixture.detectChanges();
+
+    const updatedDevice: Device = {
+      ...makeResponse().data[0],
+      capabilities: { power: 'off' },
+    };
+    commandSubject.next(updatedDevice);
+    commandSubject.complete();
+    fixture.detectChanges();
+
+    const updatedItemDebugElement = getItemDebugElement(fixture);
+    expect((updatedItemDebugElement.componentInstance as DeviceListItem).device().capabilities['power']).toBe(
+      'off',
+    );
+    expect((updatedItemDebugElement.componentInstance as DeviceListItem).disabled()).toBe(false);
+  });
+
+  it('reverts the device and shows an inline error on command failure', () => {
+    const commandSubject = new Subject<Device>();
+    const fixture = setup({
+      listDevices: () => of(makeResponse()),
+      sendLightCommand: () => commandSubject.asObservable(),
+    });
+
+    const itemDebugElement = getItemDebugElement(fixture);
+    const originalDevice = (itemDebugElement.componentInstance as DeviceListItem).device();
+    (itemDebugElement.componentInstance as DeviceListItem).togglePower.emit('off');
+    fixture.detectChanges();
+
+    commandSubject.error(new Error('boom'));
+    fixture.detectChanges();
+
+    const revertedItemDebugElement = getItemDebugElement(fixture);
+    const revertedInstance = revertedItemDebugElement.componentInstance as DeviceListItem;
+    expect(revertedInstance.device()).toEqual(originalDevice);
+    expect(revertedInstance.disabled()).toBe(false);
+    expect(revertedInstance.errorMessage()).toBeTruthy();
+  });
+
+  it('sends a brightness command when setBrightness is emitted', () => {
+    let receivedCommand: { power?: 'on' | 'off'; brightness?: number } | undefined;
+    const fixture = setup({
+      listDevices: () => of(makeResponse()),
+      sendLightCommand: (_id, command) => {
+        receivedCommand = command;
+        return of({ ...makeResponse().data[0], capabilities: { power: 'on', brightness: 42 } });
+      },
+    });
+
+    const itemDebugElement = getItemDebugElement(fixture);
+    (itemDebugElement.componentInstance as DeviceListItem).setBrightness.emit(42);
+    fixture.detectChanges();
+
+    expect(receivedCommand).toEqual({ brightness: 42 });
   });
 });

@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 
 import { Device } from '../../../core/models/device';
 
@@ -10,8 +10,37 @@ import { Device } from '../../../core/models/device';
 })
 export class DeviceListItem {
   readonly device = input.required<Device>();
+  readonly disabled = input<boolean>(false);
+  readonly errorMessage = input<string | null>(null);
+
+  readonly togglePower = output<'on' | 'off'>();
+  readonly setBrightness = output<number>();
 
   protected readonly capabilitiesSummary = computed(() => this.summarizeCapabilities(this.device()));
+
+  protected readonly isLight = computed(() => this.device().type === 'light');
+
+  protected readonly power = computed(() => {
+    const power = this.device().capabilities?.['power'];
+    return power === 'on' || power === 'off' ? power : undefined;
+  });
+
+  protected readonly brightness = computed(() => {
+    const brightness = this.device().capabilities?.['brightness'];
+    return typeof brightness === 'number' ? brightness : undefined;
+  });
+
+  protected readonly hasBrightness = computed(() => this.brightness() !== undefined);
+
+  protected onTogglePower(): void {
+    const nextPower = this.power() === 'on' ? 'off' : 'on';
+    this.togglePower.emit(nextPower);
+  }
+
+  protected onBrightnessCommit(event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.setBrightness.emit(value);
+  }
 
   private summarizeCapabilities(device: Device): string | null {
     const capabilities = device.capabilities ?? {};

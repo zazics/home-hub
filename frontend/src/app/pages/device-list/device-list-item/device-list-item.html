@@ -11,5 +11,31 @@
     @if (capabilitiesSummary()) {
       <span class="device-capabilities">{{ capabilitiesSummary() }}</span>
     }
+    @if (isLight()) {
+      <div class="light-controls">
+        <button
+          type="button"
+          class="power-toggle"
+          [disabled]="disabled()"
+          (click)="onTogglePower()"
+        >
+          {{ power() === 'on' ? 'Turn off' : 'Turn on' }}
+        </button>
+        @if (hasBrightness()) {
+          <input
+            type="range"
+            class="brightness-slider"
+            min="0"
+            max="100"
+            [value]="brightness()"
+            [disabled]="disabled()"
+            (change)="onBrightnessCommit($event)"
+          />
+        }
+      </div>
+    }
+    @if (errorMessage()) {
+      <span class="device-error">{{ errorMessage() }}</span>
+    }
   </div>
 </div>

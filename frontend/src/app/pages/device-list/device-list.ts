@@ -12,6 +12,12 @@ type DeviceListViewState =
   | { kind: 'empty' }
   | { kind: 'success'; devices: Device[]; meta: PaginatedDevicesMeta };
 
+interface LightCommandState {
+  pendingDeviceId: string | null;
+  errorDeviceId: string | null;
+  errorMessage: string | null;
+}
+
 @Component({
   selector: 'app-device-list',
   imports: [DeviceListItem],
@@ -23,9 +29,61 @@ export class DeviceList {
 
   protected readonly state = signal<DeviceListViewState>({ kind: 'loading' });
   protected readonly page = signal<number>(1);
+  protected readonly commandState = signal<LightCommandState>({
+    pendingDeviceId: null,
+    errorDeviceId: null,
+    errorMessage: null,
+  });
 
   constructor() {
     this.fetchDevices();
+  }
+
+  protected isPending(deviceId: string): boolean {
+    return this.commandState().pendingDeviceId === deviceId;
+  }
+
+  protected errorFor(deviceId: string): string | null {
+    const current = this.commandState();
+    return current.errorDeviceId === deviceId ? current.errorMessage : null;
+  }
+
+  protected onTogglePower(device: Device, power: 'on' | 'off'): void {
+    this.sendCommand(device, { power });
+  }
+
+  protected onSetBrightness(device: Device, brightness: number): void {
+    this.sendCommand(device, { brightness });
+  }
+
+  private sendCommand(device: Device, command: { power?: 'on' | 'off'; brightness?: number }): void {
+    const previousDevice = device;
+    this.commandState.set({ pendingDeviceId: device.id, errorDeviceId: null, errorMessage: null });
+
+    this.deviceService.sendLightCommand(device.id, command).subscribe({
+      next: (updatedDevice) => {
+        this.replaceDevice(updatedDevice);
+        this.commandState.set({ pendingDeviceId: null, errorDeviceId: null, errorMessage: null });
+      },
+      error: (error) => {
+        console.error('Failed to send light command', error);
+        this.replaceDevice(previousDevice);
+        this.commandState.set({
+          pendingDeviceId: null,
+          errorDeviceId: device.id,
+          errorMessage: 'Failed to send command. Please try again.',
+        });
+      },
+    });
+  }
+
+  private replaceDevice(updatedDevice: Device): void {
+    const currentState = this.state();
+    if (currentState.kind !== 'success') {
+      return;
+    }
+    const devices = currentState.devices.map((d) => (d.id === updatedDevice.id ? updatedDevice : d));
+    this.state.set({ ...currentState, devices });
   }
 
   protected previous(): void {
