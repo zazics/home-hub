@@ -52,6 +52,35 @@ export class MongoDeviceRepositoryAdapter implements DeviceRepositoryPort {
     };
   }
 
+  async findById(id: string): Promise<Device | null> {
+    const document = await this.deviceModel
+      .findById(id)
+      .lean<LeanDevice | null>()
+      .exec();
+
+    return document ? this.toDomain(document) : null;
+  }
+
+  async updateCapabilities(
+    id: string,
+    capabilities: Record<string, unknown>,
+  ): Promise<Device> {
+    const document = await this.deviceModel
+      .findByIdAndUpdate(
+        id,
+        { $set: { capabilities } },
+        { new: true },
+      )
+      .lean<LeanDevice | null>()
+      .exec();
+
+    if (!document) {
+      throw new Error(`Device not found while updating capabilities: ${id}`);
+    }
+
+    return this.toDomain(document);
+  }
+
   private toMongoFilter(filter: DeviceFilter): QueryFilter<DeviceMongo> {
     const mongoFilter: QueryFilter<DeviceMongo> = {};
     if (filter.type) {

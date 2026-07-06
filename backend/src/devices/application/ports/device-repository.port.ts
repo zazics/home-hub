@@ -28,6 +28,16 @@ export interface DeviceRepositoryPort {
     pagination: DevicePagination,
     sort: DeviceSort,
   ): Promise<PaginatedDevices>;
+
+  // Returns null if no device with this id exists (ADR 0003, section 5).
+  findById(id: string): Promise<Device | null>;
+
+  // Replaces the whole `capabilities` object with the given value and
+  // returns the updated device (ADR 0003, section 5).
+  updateCapabilities(
+    id: string,
+    capabilities: Record<string, unknown>,
+  ): Promise<Device>;
 }
 
 // Token for dependency injection

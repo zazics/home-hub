@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DevicesController } from './infrastructure/devices.controller';
 import { ListDevicesUseCase } from './application/list-devices.use-case';
+import { SendLightCommandUseCase } from './application/send-light-command.use-case';
 import { MongoDeviceRepositoryAdapter } from './infrastructure/mongo-device-repository.adapter';
 import { DEVICE_REPOSITORY_PORT } from './application/ports/device-repository.port';
 import { DeviceMongo, DeviceSchema } from './infrastructure/device.schema';
@@ -16,6 +17,7 @@ import { DeviceMongo, DeviceSchema } from './infrastructure/device.schema';
   controllers: [DevicesController],
   providers: [
     ListDevicesUseCase,
+    SendLightCommandUseCase,
     {
       provide: DEVICE_REPOSITORY_PORT,
       useClass: MongoDeviceRepositoryAdapter,

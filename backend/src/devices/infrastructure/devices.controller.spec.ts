@@ -1,12 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DevicesController } from './devices.controller';
 import { ListDevicesUseCase } from '../application/list-devices.use-case';
+import { SendLightCommandUseCase } from '../application/send-light-command.use-case';
 import { ListDevicesQueryDto } from '../application/dto/list-devices-query.dto';
+import { LightCommandDto } from '../application/dto/light-command.dto';
 import { PaginatedDevicesResponseDto } from '../application/dto/paginated-devices-response.dto';
+import { DeviceResponseDto } from '../application/dto/device-response.dto';
 
 describe('DevicesController', () => {
   let controller: DevicesController;
   let mockUseCase: { execute: jest.Mock };
+  let mockSendLightCommandUseCase: { execute: jest.Mock };
 
   const emptyResponse: PaginatedDevicesResponseDto = {
     data: [],
@@ -17,10 +21,19 @@ describe('DevicesController', () => {
     mockUseCase = {
       execute: jest.fn().mockResolvedValue(emptyResponse),
     };
+    mockSendLightCommandUseCase = {
+      execute: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DevicesController],
-      providers: [{ provide: ListDevicesUseCase, useValue: mockUseCase }],
+      providers: [
+        { provide: ListDevicesUseCase, useValue: mockUseCase },
+        {
+          provide: SendLightCommandUseCase,
+          useValue: mockSendLightCommandUseCase,
+        },
+      ],
     }).compile();
 
     controller = module.get<DevicesController>(DevicesController);
@@ -44,5 +57,24 @@ describe('DevicesController', () => {
 
     expect(result.data).toEqual([]);
     expect(result.meta.total).toBe(0);
+  });
+
+  it('delegates a light command to the use case and returns its result', async () => {
+    const command: LightCommandDto = { power: 'on', brightness: 60 };
+    const response = new DeviceResponseDto();
+    response.id = '665f1a2b8c9d4e0012a3b456';
+    response.capabilities = { power: 'on', brightness: 60 };
+    mockSendLightCommandUseCase.execute.mockResolvedValue(response);
+
+    const result: DeviceResponseDto = await controller.sendLightCommand(
+      '665f1a2b8c9d4e0012a3b456',
+      command,
+    );
+
+    expect(mockSendLightCommandUseCase.execute).toHaveBeenCalledWith(
+      '665f1a2b8c9d4e0012a3b456',
+      command,
+    );
+    expect(result).toBe(response);
   });
 });
