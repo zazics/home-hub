@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HealthModule } from './health/health.module';
+import { DevicesModule } from './devices/devices.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -14,6 +15,7 @@ import configuration from './config/configuration';
       }),
     }),
     HealthModule,
+    DevicesModule,
   ],
 })
 export class AppModule {}
