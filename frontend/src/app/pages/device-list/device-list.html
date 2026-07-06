@@ -1,0 +1,39 @@
+<div class="container">
+  <h1>Devices</h1>
+
+  @let currentState = state();
+  @switch (currentState.kind) {
+    @case ('loading') {
+      <p class="status status-loading">Loading devices…</p>
+    }
+    @case ('error') {
+      <div class="status status-error">
+        <p>Unable to load devices.</p>
+        <button type="button" (click)="retry()">Retry</button>
+      </div>
+    }
+    @case ('empty') {
+      <p class="status status-empty">No devices found.</p>
+    }
+    @case ('success') {
+      <div class="device-list">
+        @for (device of currentState.devices; track device.id) {
+          <app-device-list-item [device]="device" />
+        }
+      </div>
+      <div class="pagination">
+        <button type="button" (click)="previous()" [disabled]="currentState.meta.page <= 1">Previous</button>
+        <span class="pagination-info">
+          Page {{ currentState.meta.page }} / {{ currentState.meta.totalPages }}
+        </span>
+        <button
+          type="button"
+          (click)="next()"
+          [disabled]="currentState.meta.page >= currentState.meta.totalPages"
+        >
+          Next
+        </button>
+      </div>
+    }
+  }
+</div>

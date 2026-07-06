@@ -1,0 +1,15 @@
+@let currentDevice = device();
+<div class="device-item">
+  <div class="device-main">
+    <span class="device-name">{{ currentDevice.name }}</span>
+    @if (currentDevice.room) {
+      <span class="device-room">{{ currentDevice.room }}</span>
+    }
+  </div>
+  <div class="device-details">
+    <span class="device-status status-{{ currentDevice.status }}">{{ currentDevice.status }}</span>
+    @if (capabilitiesSummary()) {
+      <span class="device-capabilities">{{ capabilitiesSummary() }}</span>
+    }
+  </div>
+</div>
